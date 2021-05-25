@@ -1,0 +1,65 @@
+syntax = "proto3";
+
+package greet;
+
+option go_package = "greet/greetpb";
+
+message Greeting {
+  string first_name = 1;
+  string last_name = 2;
+}
+
+message GreetRequest {
+  // contains the data for the request
+  Greeting greeting = 1;
+}
+
+message GreetResponse {
+  // contains the response
+  string result = 1;
+}
+
+message GreetManyTimesRequest {
+  // contains the data for the request
+  Greeting greeting = 1;
+}
+
+message GreetManyTimesResponse {
+  // contains the response
+  string result = 1;
+}
+
+message LongGreetRequest {
+  // contains the data for the request
+  Greeting greeting = 1;
+}
+
+message LongGreetResponse {
+  // contains the response
+  string result = 1;
+}
+
+message GreetAllRequest {
+  // contains the data for the request
+  Greeting greeting = 1;
+}
+
+message GreetAllResponse {
+  // contains the response
+  string result = 1;
+}
+
+service GreetService {
+  // Unary API
+  rpc Greet(GreetRequest) returns (GreetResponse) {};
+
+  // Server streaming API
+  rpc GreetManyTimes(GreetManyTimesRequest)
+      returns (stream GreetManyTimesResponse) {};
+
+  // Client streaming API
+  rpc LongGreet(stream LongGreetRequest) returns (LongGreetResponse) {};
+
+  // Bi-Directional streaming API
+  rpc GreetAll(stream GreetAllRequest) returns (stream GreetAllResponse) {};
+}
