@@ -1,0 +1,59 @@
+syntax = "proto3";
+
+package calculator;
+
+option go_package = "calculator/calculatorpb";
+
+message SumRequest {
+  // Repeated nums to be added
+  repeated int32 nums = 1;
+}
+
+message SumResponse {
+  // Result of summation
+  int32 sum = 1;
+}
+
+message PrimeNumberRequest {
+  // num to decompose
+  int32 num = 1;
+}
+
+message PrimeNumberResponse {
+  // Result of decomposition
+  int32 prime = 1;
+}
+
+message AverageRequest {
+  // num to take average of
+  int32 num = 1;
+}
+
+message AverageResponse {
+  // Result of average
+  float average = 1;
+}
+
+message FindMaxRequest {
+  // num to take max of
+  int32 num = 1;
+}
+
+message FindMaxResponse {
+  // Result of max
+  int32 max = 1;
+}
+
+service CalculatorService {
+  // Unary API
+  rpc Sum(SumRequest) returns (SumResponse) {};
+
+  // Server streaming API
+  rpc PrimeNumber(PrimeNumberRequest) returns (stream PrimeNumberResponse) {};
+
+  // Client streaming API
+  rpc Average(stream AverageRequest) returns (AverageResponse) {};
+
+  // Bi-Directional streaming API
+  rpc FindMax(stream FindMaxRequest) returns (stream FindMaxResponse) {};
+}
