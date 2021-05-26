@@ -44,6 +44,16 @@ message FindMaxResponse {
   int32 max = 1;
 }
 
+message SquareRootRequest {
+  // num to take max of
+  double num = 1;
+}
+
+message SquareRootResponse {
+  // Result of sqrt
+  double sqrt = 1;
+}
+
 service CalculatorService {
   // Unary API
   rpc Sum(SumRequest) returns (SumResponse) {};
@@ -56,4 +66,8 @@ service CalculatorService {
 
   // Bi-Directional streaming API
   rpc FindMax(stream FindMaxRequest) returns (stream FindMaxResponse) {};
+
+  // Unary API with error handling
+  // An exception INVALID_ARGUMENT is raised if the argument in negative.
+  rpc SquareRoot(SquareRootRequest) returns (SquareRootResponse) {};
 }

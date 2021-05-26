@@ -11,6 +11,7 @@ import (
 
 	"github.com/andreasatle/grpc-go-course/greet/greetpb"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
 )
 
 // server implements the GreetServiceServer interface.
@@ -94,6 +95,21 @@ func (s *server) GreetAll(stream greetpb.GreetService_GreetAllServer) error {
 	}
 }
 
+func (s *server) GreetWithDeadline(ctx context.Context, req *greetpb.GreetWithDeadlineRequest) (*greetpb.GreetWithDeadlineResponse, error) {
+	fmt.Printf("Server GreetWithDeadline function invoked with req: %v\n", req)
+
+	for i := 0; i < 3; i++ {
+		if ctx.Err() == context.Canceled {
+			fmt.Println("The client canceled the request")
+		}
+		time.Sleep(time.Second)
+	}
+	res := &greetpb.GreetWithDeadlineResponse{
+		Result: "Hello " + req.GetGreeting().GetFirstName(),
+	}
+	return res, nil
+}
+
 func main() {
 	fmt.Println("Hello, I'm serving a greeting!")
 
@@ -108,6 +124,7 @@ func main() {
 
 	// Register service
 	greetpb.RegisterGreetServiceServer(s, &server{})
+	reflection.Register(s)
 
 	// Serve service
 	if err := s.Serve(listener); err != nil {

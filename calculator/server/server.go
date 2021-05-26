@@ -11,6 +11,9 @@ import (
 
 	"github.com/andreasatle/grpc-go-course/calculator/calculatorpb"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/reflection"
+	"google.golang.org/grpc/status"
 )
 
 type server struct{}
@@ -88,11 +91,23 @@ func (s *server) FindMax(stream calculatorpb.CalculatorService_FindMaxServer) er
 	}
 }
 
+func (s *server) SquareRoot(ctx context.Context, req *calculatorpb.SquareRootRequest) (*calculatorpb.SquareRootResponse, error) {
+	fmt.Printf("Server SquareRoot function invoked with req: %v\n", req)
+	num := req.GetNum()
+	if num < 0.0 {
+		return nil, status.Errorf(
+			codes.InvalidArgument,
+			fmt.Sprintf("Received a negative argument: %v", num))
+	}
+	sqrt := math.Sqrt(num)
+	return &calculatorpb.SquareRootResponse{Sqrt: sqrt}, nil
+}
+
 func main() {
 	fmt.Println("Hello, I'm serving a calculator!")
 
 	// Start a tcp listener
-	listener, err := net.Listen("tcp", "0.0.0.0:50051")
+	listener, err := net.Listen("tcp", "0.0.0.0:50052")
 	if err != nil {
 		log.Fatalf("Failed to listen at tcp: %v\n", err)
 	}
@@ -102,6 +117,7 @@ func main() {
 
 	// Register service
 	calculatorpb.RegisterCalculatorServiceServer(s, &server{})
+	reflection.Register(s)
 
 	// Serve service
 	if err := s.Serve(listener); err != nil {

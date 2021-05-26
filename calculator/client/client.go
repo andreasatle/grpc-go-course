@@ -9,6 +9,8 @@ import (
 
 	"github.com/andreasatle/grpc-go-course/calculator/calculatorpb"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 func main() {
@@ -28,9 +30,12 @@ func main() {
 	//sum := doUnary(c, []int32{1, 2, 3, 5, 8})
 	//primes := doServerStreaming(c, int32(471200))
 	//average := doClientStreaming(c, []int32{1, 2, 3, 4, 5, 6, 7, 8, 9})
-	max := doBiDiStreaming(c, []int32{1, 3, 2, 5, 8, 7, 6, 9})
+	//max := doBiDiStreaming(c, []int32{1, 3, 2, 5, 8, 7, 6, 9})
 	//fmt.Println(sum, primes, average, max)
-	fmt.Println(max)
+	sqrt, err := doUnaryWithError(c, 10.0)
+	fmt.Println(sqrt, err)
+	sqrt, err = doUnaryWithError(c, -10.0)
+	fmt.Println(sqrt, err)
 }
 
 func doUnary(c calculatorpb.CalculatorServiceClient, nums []int32) int32 {
@@ -146,4 +151,33 @@ func doBiDiStreaming(c calculatorpb.CalculatorServiceClient, nums []int32) int32
 
 	<-waitc
 	return max
+}
+
+func doUnaryWithError(c calculatorpb.CalculatorServiceClient, num float64) (float64, error) {
+	fmt.Println("Calling a Unary SquareRoot RPC...")
+
+	req := &calculatorpb.SquareRootRequest{
+		Num: num,
+	}
+
+	res, err := c.SquareRoot(context.Background(), req)
+
+	if err != nil {
+		resError, ok := status.FromError(err)
+		if ok {
+			// User error
+			fmt.Println("User error message:", resError.Message())
+			fmt.Println("User error code:", resError.Code())
+			if resError.Code() == codes.InvalidArgument {
+				fmt.Println("We probably have a negative argument")
+			}
+		} else {
+			log.Fatalf("Error calling sqrt RPC: %v\n", err)
+		}
+		return 0.0, err
+	}
+
+	sqrt := res.GetSqrt()
+	log.Printf("Response from SquareRoot RPC: %v", sqrt)
+	return sqrt, err
 }

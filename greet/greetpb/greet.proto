@@ -49,6 +49,16 @@ message GreetAllResponse {
   string result = 1;
 }
 
+message GreetWithDeadlineRequest {
+  // contains the data for the request
+  Greeting greeting = 1;
+}
+
+message GreetWithDeadlineResponse {
+  // contains the response
+  string result = 1;
+}
+
 service GreetService {
   // Unary API
   rpc Greet(GreetRequest) returns (GreetResponse) {};
@@ -62,4 +72,8 @@ service GreetService {
 
   // Bi-Directional streaming API
   rpc GreetAll(stream GreetAllRequest) returns (stream GreetAllResponse) {};
+
+  // Unary API with Deadline
+  rpc GreetWithDeadline(GreetWithDeadlineRequest)
+      returns (GreetWithDeadlineResponse) {};
 }
