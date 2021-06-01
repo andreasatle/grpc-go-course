@@ -46,9 +46,11 @@ message DeleteBlogRequest {
   string blog_id = 1;
 }
 
-message DeleteBlogResponse {
-  // Return nothing
-}
+message DeleteBlogResponse {}
+
+message ListBlogRequest {}
+
+message ListBlogResponse { Blog blog = 1; }
 
 service BlogService {
   // Unary API
@@ -56,4 +58,7 @@ service BlogService {
   rpc ReadBlog(ReadBlogRequest) returns (ReadBlogResponse) {};
   rpc UpdateBlog(UpdateBlogRequest) returns (UpdateBlogResponse) {};
   rpc DeleteBlog(DeleteBlogRequest) returns (DeleteBlogResponse) {};
+
+  // Server streaming API
+  rpc ListBlog(ListBlogRequest) returns (stream ListBlogResponse) {};
 }

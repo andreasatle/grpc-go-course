@@ -134,15 +134,7 @@ func (*server) UpdateBlog(ctx context.Context, req *blogpb.UpdateBlogRequest) (*
 		return nil, err
 	}
 
-	res := &blogpb.UpdateBlogResponse{
-		Blog: &blogpb.Blog{
-			Id:       oid.Hex(),
-			AuthorId: data.AuthorID,
-			Title:    data.Title,
-			Content:  data.Content,
-		},
-	}
-	return res, nil
+	return &blogpb.UpdateBlogResponse{Blog: dataToBlogPb(data)}, nil
 }
 
 func (*server) DeleteBlog(ctx context.Context, req *blogpb.DeleteBlogRequest) (*blogpb.DeleteBlogResponse, error) {
@@ -158,6 +150,36 @@ func (*server) DeleteBlog(ctx context.Context, req *blogpb.DeleteBlogRequest) (*
 		return nil, err
 	}
 	return &blogpb.DeleteBlogResponse{}, nil
+}
+
+func (*server) ListBlog(req *blogpb.ListBlogRequest, stream blogpb.BlogService_ListBlogServer) error {
+	log.Println("Invoked RPC ListBlog...")
+	cursor, err := collection.Find(context.Background(), bson.D{})
+	if err != nil {
+		return status.Errorf(codes.Internal, fmt.Sprintf("Unknown internal error I: %v", err))
+	}
+	defer cursor.Close(context.Background())
+	data := &blogItem{}
+	for cursor.Next(context.Background()) {
+		err := cursor.Decode(data)
+		if err != nil {
+			return status.Errorf(codes.Internal, fmt.Sprintf("Error decoding data: %v", err))
+		}
+		stream.Send(&blogpb.ListBlogResponse{Blog: dataToBlogPb(data)})
+	}
+	if err := cursor.Err(); err != nil {
+		return status.Errorf(codes.Internal, fmt.Sprintf("Unknown internal error II: %v", err))
+	}
+	return nil
+}
+
+func dataToBlogPb(data *blogItem) *blogpb.Blog {
+	return &blogpb.Blog{
+		Id:       data.ID.Hex(),
+		AuthorId: data.AuthorID,
+		Title:    data.Title,
+		Content:  data.Content,
+	}
 }
 func main() {
 	// Setup the logging, for if program crashes

@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"io"
 	"log"
 
 	"github.com/andreasatle/grpc-go-course/blog/blogpb"
@@ -85,4 +86,21 @@ func tst(c blogpb.BlogServiceClient, author, title, content string) {
 		return
 	}
 	log.Printf("Blog has been deleted\n")
+
+	stream, err := c.ListBlog(context.Background(), &blogpb.ListBlogRequest{})
+	if err != nil {
+		log.Fatalf("Error listing blogs from server: %v\n", err)
+		return
+	}
+	for {
+		res, err := stream.Recv()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			log.Fatalf("Error receiving list stream from server: %v\n", err)
+			return
+		}
+		log.Println("List blog:", res.GetBlog())
+	}
 }
