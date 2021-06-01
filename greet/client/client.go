@@ -10,13 +10,28 @@ import (
 	"github.com/andreasatle/grpc-go-course/greet/greetpb"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/status"
 )
 
 func main() {
+	// Setup the logging, for if program crashes
+	log.SetFlags(log.LstdFlags | log.Lshortfile)
+
 	fmt.Println("Hello, I'm a client!")
 
-	connection, err := grpc.Dial("localhost:50051", grpc.WithInsecure())
+	tls := true
+	opts := grpc.WithInsecure()
+	if tls {
+		certFile := "ssl/ca.crt"
+		creds, err := credentials.NewClientTLSFromFile(certFile, "")
+		if err != nil {
+			log.Fatalf("Error loading credentials: %v", err)
+			return
+		}
+		opts = grpc.WithTransportCredentials(creds)
+	}
+	connection, err := grpc.Dial("localhost:50051", opts)
 	if err != nil {
 		log.Fatalf("Could not connect: %v\n", err)
 	}
@@ -26,12 +41,12 @@ func main() {
 	c := greetpb.NewGreetServiceClient(connection)
 	fmt.Printf("Client created: %v\n", c)
 
-	//doUnary(c, "Andreas", "Atle")
+	doUnary(c, "Andreas", "Atle")
 	//doServerStreaming(c, "Antonius", "Atle")
 	//doClientStreaming(c, []string{"Andreas", "Mellissa", "Antonius", "Annelie"})
 	//doBiDiStreaming(c, []string{"Andreas", "Mellissa", "Antonius", "Annelie"})
-	doUnaryWithDeadline(c, "Andreas", 5*time.Second)
-	doUnaryWithDeadline(c, "Andreas", time.Second)
+	//doUnaryWithDeadline(c, "Andreas", 5*time.Second)
+	//doUnaryWithDeadline(c, "Andreas", time.Second)
 }
 
 func doUnary(c greetpb.GreetServiceClient, firstName, lastName string) {
