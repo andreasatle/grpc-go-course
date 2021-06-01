@@ -89,8 +89,8 @@ func (*server) ReadBlog(ctx context.Context, req *blogpb.ReadBlogRequest) (*blog
 	filter := bson.M{"_id": oid}
 	err = collection.FindOne(context.Background(), filter).Decode(data)
 	if err != nil {
-		log.Fatalf("Error retrieving data from database: %v", err)
-		return nil, err
+		log.Printf("Error retrieving data from database: %v", err)
+		return nil, status.Errorf(codes.InvalidArgument, fmt.Sprintf("Error retrieving data from database: %v", err))
 	}
 
 	res := &blogpb.ReadBlogResponse{
@@ -120,7 +120,7 @@ func (*server) UpdateBlog(ctx context.Context, req *blogpb.UpdateBlogRequest) (*
 	filter := bson.M{"_id": oid}
 	err = collection.FindOne(context.Background(), filter).Decode(data)
 	if err != nil {
-		log.Fatalf("Error retrieving data from database: %v", err)
+		log.Printf("Error retrieving data from database: %v", err)
 		return nil, err
 	}
 
@@ -130,7 +130,7 @@ func (*server) UpdateBlog(ctx context.Context, req *blogpb.UpdateBlogRequest) (*
 
 	_, err = collection.ReplaceOne(context.Background(), filter, data)
 	if err != nil {
-		log.Fatalf("Error updating data in database: %v", err)
+		log.Printf("Error updating data in database: %v", err)
 		return nil, err
 	}
 
@@ -146,7 +146,7 @@ func (*server) DeleteBlog(ctx context.Context, req *blogpb.DeleteBlogRequest) (*
 	filter := bson.M{"_id": oid}
 	_, err = collection.DeleteOne(context.Background(), filter)
 	if err != nil {
-		log.Fatalf("Error deleting data in database: %v", err)
+		log.Printf("Error deleting data in database: %v", err)
 		return nil, err
 	}
 	return &blogpb.DeleteBlogResponse{}, nil
@@ -209,14 +209,14 @@ func main() {
 	log.Println("Listen to tcp...")
 	listener, err := net.Listen("tcp", "0.0.0.0:50051")
 	if err != nil {
-		log.Fatalf("Failed to listen at tcp: %v\n", err)
+		log.Printf("Failed to listen at tcp: %v\n", err)
 	}
 	defer func() {
 		log.Println("Close the tcp-listener...")
 		listener.Close()
 	}()
 
-	tls := true
+	tls := false
 	opts := []grpc.ServerOption{}
 	if tls {
 		certFile := "tsl/server.crt"

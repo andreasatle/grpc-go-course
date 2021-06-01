@@ -17,7 +17,7 @@ func main() {
 
 	fmt.Println("Hello, I'm a client!")
 
-	tls := true
+	tls := false
 	opts := grpc.WithInsecure()
 	fmt.Printf("%T\n", opts)
 	if tls {
