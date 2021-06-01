@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/andreasatle/grpc-go-course/blog/blogpb"
-	"github.com/andreasatle/grpc-go-course/blog/server/database"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -42,7 +41,7 @@ func (*server) CreateBlog(ctx context.Context, req *blogpb.CreateBlogRequest) (*
 	blog := req.GetBlog()
 
 	// Create a database item
-	data := database.BlogItem{
+	data := blogItem{
 		AuthorID: blog.GetAuthorId(),
 		Title:    blog.GetTitle(),
 		Content:  blog.GetContent(),
