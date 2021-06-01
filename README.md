@@ -39,7 +39,7 @@ we can replace ```greet``` with ```calculator``` to generate the calculator go-f
 
 # Error handling in gRPC
 We implement an ```rpc SquareRoot``` that checks that the argument in positive.
-```
+```go
 func (s *server) SquareRoot(ctx context.Context, req *calculatorpb.SquareRootRequest) (*calculatorpb.SquareRootResponse, error) {
 	fmt.Printf("Server SquareRoot function invoked with req: %v\n", req)
 	num := req.GetNum()
@@ -57,11 +57,11 @@ We create an error with ```status.Errorf```, with error code ```codes.InvalidArg
 # gRPC Deadlines
 The client can set a deadline by modifying the context in the RPC.
 Replace the RPC call:
-```
+```go
 res, err := c.GreetWithDeadline(context.Background(), req)
 ```
 with
-```
+```go
 ctx, cancel := context.WithTimeout(context.Background(), timeout)
 defer cancel()
 res, err := c.GreetWithDeadline(ctx, req)
@@ -69,7 +69,7 @@ res, err := c.GreetWithDeadline(ctx, req)
 where the timeout is a ```time.Duration```.
 After we can check for the gRPC-error ```codes.DeadlineExceeded```.<br>
 The full code on the client side:
-```
+```go
 func doUnaryWithDeadline(c greetpb.GreetServiceClient, firstName string, timeout time.Duration) {
 	fmt.Println("Starting a Unary GreetWithDeadline RPC...")
 	req := &greetpb.GreetWithDeadlineRequest{
@@ -99,7 +99,7 @@ func doUnaryWithDeadline(c greetpb.GreetServiceClient, firstName string, timeout
 }
 ```
 The code on the server side:
-```
+```go
 func (s *server) GreetWithDeadline(ctx context.Context, req *greetpb.GreetWithDeadlineRequest) (*greetpb.GreetWithDeadlineResponse, error) {
 	fmt.Printf("Server GreetWithDeadline function invoked with req: %v\n", req)
 
@@ -119,14 +119,55 @@ The server simulates that the request takes 3 seconds, and checks if the client 
 once every second.
 
 # SSL Security
-I can't get the ssl-key to generate.
-I will come back to this later, when the rest of the course is completed.
-This is the second time I do this course, and the first time it worked.
-I have updated my bash on mac since, and that might be the problem.
+The instructor has given us scripts to generate the certificate files. The files on github doesn't match the file in the videos, so I modified the github files to match the video. Moreover, there seems to be an issue with go-1.15 and forward regarding the certification from the instructor.
+I have to add a GODEBUG-flag in order for it to work. I will have to come back to this at a later time.
+
+On the ser ver side, we modify the code:
+```go
+	tls := true
+	opts := []grpc.ServerOption{}
+	if tls {
+		certFile := "ssl/server.crt"
+		keyFile := "ssl/server.pem"
+		creds, err := credentials.NewServerTLSFromFile(certFile, keyFile)
+		if err != nil {
+			log.Fatal("Error loading certificates: %v", err)
+			return
+		}
+		opts = append(opts, grpc.Creds(creds))
+	}
+
+	// Create a new server
+	log.Println("Start the gRPC server...")
+	s := grpc.NewServer(opts...)
+```
+If ```tls``` is set to ```true```, then we use certification, otherwise not.
+
+On the client side, we modify:
+```go
+	tls := true
+	opts := grpc.WithInsecure()
+	if tls {
+		certFile := "ssl/ca.crt"
+		creds, err := credentials.NewClientTLSFromFile(certFile, "")
+		if err != nil {
+			log.Fatalf("Error loading credentials: %v", err)
+			return
+		}
+		opts = grpc.WithTransportCredentials(creds)
+	}
+
+	connection, err := grpc.Dial("localhost:50051", opts)
+```
+The ```tls``` option has to match the server. When the certification is used, we need to start the client with:
+```
+GODEBUG=x509ignoreCN=0 go run blog/client/client.go
+```
+Very annoying!
 
 # Reflection and Evans CLI
 Add one line in the server main function:
-```
+```go
 	// Register service
 	calculatorpb.RegisterCalculatorServiceServer(s, &server{})
 	reflection.Register(s)
