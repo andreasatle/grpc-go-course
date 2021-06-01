@@ -107,7 +107,7 @@ func main() {
 	fmt.Println("Hello, I'm serving a calculator!")
 
 	// Start a tcp listener
-	listener, err := net.Listen("tcp", "0.0.0.0:50052")
+	listener, err := net.Listen("tcp", "0.0.0.0:50051")
 	if err != nil {
 		log.Fatalf("Failed to listen at tcp: %v\n", err)
 	}
